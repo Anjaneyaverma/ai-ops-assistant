@@ -1,18 +1,19 @@
 from fastapi import FastAPI
-from app.agents.planner import planner_agent
-from app.agents.executor import executor_agent
-from app.agents.verifier import verifier_agent
+from agents.planner import create_plan
+from agents.executor import execute_plan
+from agents.verifier import verify_and_format
+from dotenv import load_dotenv
+
+load_dotenv()
 
 app = FastAPI()
 
 @app.post("/run")
-def run_agent(prompt: str):
-    plan = planner_agent(prompt)
-    results = executor_agent(plan)
-    verification = verifier_agent(results)
+def run_task(payload: dict):
+    user_task = payload.get("task")
 
-    return {
-        "plan": plan,
-        "results": results,
-        "verification": verification
-    }
+    plan = create_plan(user_task)
+    execution_results = execute_plan(plan)
+    final_response = verify_and_format(execution_results)
+
+    return final_response
